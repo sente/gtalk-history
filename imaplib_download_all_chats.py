@@ -1,13 +1,5 @@
 #!/usr/bin/env python
 # encoding: utf-8
-#
-# Copyright (c) 2008 Doug Hellmann All rights reserved.
-#
-"""
-"""
-
-__version__ = "$Id$"
-#end_pymotw_header
 
 import imaplib
 import imaplib_connect
@@ -15,23 +7,19 @@ import datetime
 import email
 import email.header
 import os
+import time
+import sys
 
 from imaplib_list_parse import parse_list_response
 
-import time
-import sys
 
 def ensure_dir(f):
     d = os.path.dirname(f)
     if not os.path.exists(d):
         os.makedirs(d)
 
-try:
-    search = sys.argv[1]
-except:
-    search = 'ALL'
 
-def get_msg_body(id):
+def get_msg_body(c, id):
 
     if type(id) == type(3):
         idstr = '%s' %id
@@ -65,32 +53,43 @@ def get_msg_body(id):
         if isinstance(response_part, tuple):
             return response_part[1]
 
-c = imaplib_connect.open_connection(False,'~/.pymotw')
 
 
-mailbox_name = '[Gmail]/Chats'
 
-try:
-    #num = c.select(mailbox_name, readonly=True)
-    typ, msg_ids = c.select(mailbox_name, readonly=True)
-    print mailbox_name, typ, msg_ids
+def main():
 
-    print msg_ids[0]
+    try:
+        search = sys.argv[1]
+    except:
+        search = 'ALL'
 
-    for i in range(int(msg_ids[0])):
-        print i
+    c = imaplib_connect.open_connection(False, './.pymotw')
 
-    for m in reversed([num for num in range(int(msg_ids[0]) ) if isinstance(num,int)]):
-        try:
-            print m
-            open('mychats/%s.email' %m, 'w').write(get_msg_body(m))
-            #print get_msg_body(m)
-        except:
-            print sys.exc_info()[2]
-            print Exception("%r",e)
-            time.sleep(5)
+    mailbox_name = '[Gmail]/Chats'
 
-except Exception, e:
-    sys.stderr.write(str(e))
-    print 'trash'
+    try:
+        #num = c.select(mailbox_name, readonly=True)
+        typ, msg_ids = c.select(mailbox_name, readonly=True)
+        print mailbox_name, typ, msg_ids
+
+        print msg_ids[0]
+
+        for i in range(int(msg_ids[0])):
+            print i
+
+        arraynum = list(reversed([num for num in range(int(msg_ids[0]) ) if isinstance(num, int)]))
+        for m in arraynum:
+            try:
+                print m
+                open('mychats/%s.email' %m, 'w').write(get_msg_body(c, m))
+            except Exception, e:
+                sys.stderr.write(str(e))
+
+    except Exception, e:
+        sys.stderr.write(str(e))
+        print 'trash'
+
+
+if __name__ == '__main__':
+    main()
 
